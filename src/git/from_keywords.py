@@ -92,7 +92,7 @@ def git_versions_from_keywords(keywords, tag_prefix, verbose):
         ref = sorted(refs)[0]
         if verbose:
             print("picking %s", ref)
-        return {"version": "%s+%s" % (ref, short_hash),
+        return {"version": "0+%s.%s" % (ref, short_hash),
                 "full-revisionid": full_hash,
                 "dirty": False, "error": None, "date": date}
 
