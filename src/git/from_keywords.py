@@ -52,6 +52,10 @@ def git_versions_from_keywords(keywords, tag_prefix, verbose):
         if verbose:
             print("keywords are unexpanded, not using")
         raise NotThisMethod("unexpanded keywords, not a git-archive tarball")
+
+    full_hash = keywords["full"].strip()
+    short_hash = full_hash[0:6]
+
     refs = set([r.strip() for r in refnames.strip("()").split(",")])
     # starting in git-1.8.3, tags are listed as "tag: foo-1.0" instead of
     # just "foo-1.0". If we see a "tag: " prefix, prefer those.
@@ -77,14 +81,25 @@ def git_versions_from_keywords(keywords, tag_prefix, verbose):
             if verbose:
                 print("picking %s" % r)
             return {"version": r,
-                    "full-revisionid": keywords["full"].strip(),
+                    "full-revisionid": full_hash,
                     "dirty": False, "error": None,
                     "date": date}
-    # no suitable tags, so version is "0+unknown", but full hex is still there
+    # no suitable tags
     if verbose:
-        print("no suitable tags, using unknown + full revision id")
-    return {"version": "0+unknown",
-            "full-revisionid": keywords["full"].strip(),
-            "dirty": False, "error": "no suitable tags", "date": None}
+        print("no suitable tags, looking for any remaining refs")
+
+    if len(refs) > 0:
+        ref = sorted(refs)[0]
+        if verbose:
+            print("picking %s", ref)
+        return {"version": "%s+%s" % (ref, short_hash),
+                "full-revisionid": full_hash,
+                "dirty": False, "error": None, "date": date}
+
+    if verbose:
+        print("no suitable tags or refs, using unknown + short revision id")
+    return {"version": "0+%s" % short_hash,
+            "full-revisionid": full_hash,
+            "dirty": False, "error": "no suitable tags or refs", "date": date}
 
 
